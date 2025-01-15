@@ -40,57 +40,57 @@ sub vcl_recv {
 	} else {
 		set req.backend_hint = chaos.backend();
 	}
-	set req.http.Varnish-Director = req.backend_hint;
+	set req.http.varnish-director = req.backend_hint;
 }
 
 sub vcl_hit {
-	set req.http.Varnish-Cache = "HIT";
+	set req.http.varnish-cache = "HIT";
 	if (obj.ttl <= 0s && obj.grace > 0s) {
 		set req.http.cache = "STALE";
 	}
 }
 
 sub vcl_miss {
-	set req.http.Varnish-Cache = "MISS";
+	set req.http.varnish-cache = "MISS";
 	if (vsthrottle.is_denied("apikey:" + client.ip, 1000,10s,30s)) {
-		set req.http.Varnish-Cache = "THROTTLED";
+		set req.http.varnish-cache = "THROTTLED";
 	    return (synth(429, "Throttling Backend"));
 	}
 }
 
 sub vcl_pass {
-	set req.http.Varnish-Cache = "PASS";
+	set req.http.varnish-cache = "PASS";
 }
 
 sub vcl_pipe {
-	set req.http.Varnish-Cache = "PIPE";
+	set req.http.varnish-cache = "PIPE";
 }
 
 sub vcl_synth {
-	set resp.http.Varnish-Cache = "SYNTH";
+	set resp.http.varnish-cache = "SYNTH";
 }
 
 sub vcl_backend_fetch {
 }
 
 sub vcl_backend_response {
-	set beresp.http.Varnish-Backend = beresp.backend;
+	set beresp.http.varnish-backend = beresp.backend;
 }
 
 sub vcl_backend_error {
-	set beresp.http.Varnish-Cache = "BACKEND_ERROR";
+	set beresp.http.varnish-cache = "BACKEND_ERROR";
 }
 
 sub vcl_deliver {
 	if (obj.uncacheable) {
-		set resp.http.Varnish-Cache = resp.http.Varnish-Cache + " uncacheable" ;
+		set resp.http.varnish-cache = resp.http.varnish-cache + " uncacheable" ;
 	}
-	if (!resp.http.Varnish-Cache) {
-		set resp.http.Varnish-Cache = req.http.Varnish-Cache;
+	if (!resp.http.varnish-cache) {
+		set resp.http.varnish-cache = req.http.varnish-cache;
 	}	
-	set resp.http.Varnish-Hits = obj.hits;
-	set resp.http.Varnish-Director = req.http.Varnish-Director;
-	set resp.http.Varnish-Backend = resp.http.Varnish-Backend;
-	std.log("prom=backends backend=" + resp.http.Varnish-Backend + ",director="+ resp.http.Varnish-Director + ",cache=" + req.http.Varnish-Cache + ",status=" + resp.status +",desc=vcl_deliver");
+	set resp.http.varnish-hits = obj.hits;
+	set resp.http.varnish-director = req.http.varnish-director;
+	set resp.http.varnish-backend = resp.http.varnish-backend;
+	std.log("prom=backends backend=" + resp.http.varnish-backend + ",director="+ resp.http.varnish-director + ",cache=" + req.http.varnish-cache + ",status=" + resp.status +",desc=vcl_deliver");
 }
 
