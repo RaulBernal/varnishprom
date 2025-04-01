@@ -228,7 +228,7 @@ func main() {
 
 						// Split the extracted string into the counter name and labels
 						parts := strings.SplitN(extracted, " ", 2)
-						if len(parts) < 1 {
+						if len(parts) < 2 { //  If string "extracted"  has no space then "parts" will have len 1 and access to parts[1] will panic.
 							// If there are not enough parts, skip this line
 							continue
 						}
@@ -458,6 +458,10 @@ func main() {
 						if strings.HasPrefix(key, "VBE."+activeVcl+".udo") {
 							backendtype = "udo"
 							matched := udoRe.FindStringSubmatch(key)
+							if len(matched) < 4 {
+							    log.Warn("Can not parse metric (udo)", "key", key)
+							    continue
+							}
 							backend = matched[2]
 							director = matched[1]
 							counter = matched[3]
