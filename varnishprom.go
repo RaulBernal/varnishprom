@@ -435,7 +435,12 @@ func main() {
 				// VBE.boot.goto.00000928.(52.2.2.2).(http://foobar.s3-website.eu-central-1.amazonaws.com:80).(ttl:10.000000).happy
 				// VBE.boot.vglive_web_01.happy
 				// VBE.boot.udo.vg_foobar_udo.(sa4:10.2.3.4:3005).happy
-				gotoRe := regexp.MustCompile(`^.*\.goto\..*?\(([\d\.]+).*?\(([^\)]+).*\)\.(\w+)`)
+
+				//gotoRe := regexp.MustCompile(`^.*\.goto\..*?\(([\d\.]+).*?\(([^\)]+).*\)\.(\w+)`)
+				// Transparent Edge uses as director the backend name after the TTL
+				// VBE.reload_20250401_155131_2988522.goto.00000165.(82.98.160.172).(https://82.98.160.172:443).(ttl:10.000000)c313_fundacionlaboral.happy
+				gotoRe := regexp.MustCompile(`^.*\.goto\.[^\.]+\.\(([\d\.]+)\)\.\([^)]*\)\.\([^)]*\)([^\.\s]+)\.(\w+)$`)
+
 				udoRe := regexp.MustCompile(`^.*\.udo\.(.*?)\.\(sa[46]:(\d+\.\d+\.\d+\.\d+:\d+)\)\.(\w+)`)
 				backendRe := regexp.MustCompile(`(\w+)\.(\w+)$`)
 				directorRe := regexp.MustCompile(`[-_\d]+$`)
@@ -460,6 +465,7 @@ func main() {
 							matched := udoRe.FindStringSubmatch(key)
 							if len(matched) < 4 {
 							    log.Warn("Can not parse metric (udo)", "key", key)
+								log.Warn("DEBUG: ", "matched", matched)
 							    continue
 							}
 							backend = matched[2]
@@ -468,6 +474,11 @@ func main() {
 						} else if strings.HasPrefix(key, "VBE."+activeVcl+".goto") {
 							backendtype = "goto"
 							matched := gotoRe.FindStringSubmatch(key)
+							if len(matched) < 4 {
+							    log.Warn("Can not parse metric (goto)", "key", key)
+								log.Warn("DEBUG: ", "matched", matched)
+							    continue
+							}
 							backend = matched[1]
 							director = matched[2]
 							counter = matched[3]

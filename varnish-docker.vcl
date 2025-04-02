@@ -47,6 +47,9 @@ sub vcl_pipe {
 
 sub vcl_backend_response {
 	set beresp.http.V-Backend = beresp.backend;
+	if (bereq.retries > 0) {
+		std.log("prom=backend_retries retries=" + bereq.retries);
+	}
 }
 
 sub vcl_deliver {

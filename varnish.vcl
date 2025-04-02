@@ -40,6 +40,7 @@ sub vcl_recv {
 	} else {
 		set req.backend_hint = chaos.backend();
 	}
+	std.log("prom=backend_hint hint=" + req.backend_hint);
 	set req.http.varnish-director = req.backend_hint;
 }
 
@@ -75,6 +76,9 @@ sub vcl_backend_fetch {
 
 sub vcl_backend_response {
 	set beresp.http.varnish-backend = beresp.backend;
+    if (bereq.retries > 0) {
+      std.log("prom=backend_retries retries=" + bereq.retries);
+    }
 }
 
 sub vcl_backend_error {
